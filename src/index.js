@@ -1,6 +1,9 @@
+import Logger     from './Logger';
+import Timer      from './Timer';
+import TimeKeeper from './TimeKeeper';
 
-module.exports = {
-    Logger:     require('Logger'),
-    Timer:      require('Timer'),
-    TimeKeeper: require('TimeKeeper')
-};
+export {
+    Logger,
+    Timer,
+    TimeKeeper
+}
