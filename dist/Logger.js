@@ -179,11 +179,11 @@ class Logger {
         this.Winston.log(sSeverity, sAction, oMeta);
     }
 
-    summary() {
+    summary(sOverrideName = 'Summary') {
         this.index++;
         const iTimer = this.metrics.stop('_REQUEST');
 
-        this.Winston.log('info', [this.service, 'Summary'].join('.'), {
+        this.Winston.log('info', [this.service, sOverrideName].join('.'), {
             '--ms': iTimer,
             '--i': this.index,
             '--summary': true,
