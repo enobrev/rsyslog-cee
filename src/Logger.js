@@ -97,6 +97,18 @@
             this.Winston.remove(Winston.transports.Syslog.prototype.name);
         }
 
+        getTraceTags() {
+            let oTrace = {
+                '--t': this.thread_hash
+            };
+
+            if (this.parent_hash) {
+                oTrace['--p'] = this.parent_hash;
+            }
+
+            return oTrace;
+        }
+
         addTag(tag: string, value: mixed) {
             this.tags[tag] = value;
         }
