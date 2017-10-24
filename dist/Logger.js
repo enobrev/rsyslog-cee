@@ -147,15 +147,10 @@ class Logger {
     }
 
     getTraceTags() {
-        let oTrace = {
-            '--t': this.thread_hash
+        return {
+            '--t': this.thread_hash,
+            '--p': this.request_hash
         };
-
-        if (this.parent_hash) {
-            oTrace['--p'] = this.parent_hash;
-        }
-
-        return oTrace;
     }
 
     addTag(tag, value) {
