@@ -1,0 +1,8 @@
+[ignore]
+
+[include]
+
+[libs]
+
+[options]
+module.name_mapper.extension='json' -> '<PROJECT_ROOT>/flow-hack.js'
