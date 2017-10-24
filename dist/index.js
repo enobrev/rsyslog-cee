@@ -1,5 +1,7 @@
 'use strict';
 
-exports.Logger = require('Logger');
-exports.Timer = require('Timer');
-exports.TimeKeeper = require('TimeKeeper');
+module.exports = {
+    Logger: require('Logger'),
+    Timer: require('Timer'),
+    TimeKeeper: require('TimeKeeper')
+};
