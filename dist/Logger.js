@@ -239,4 +239,3 @@ class Logger {
     }
 }
 exports.default = Logger;
-//# sourceMappingURL=Logger.js.map

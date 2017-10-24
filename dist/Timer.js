@@ -93,4 +93,3 @@ class Timer {
     }
 }
 exports.default = Timer;
-//# sourceMappingURL=Timer.js.map

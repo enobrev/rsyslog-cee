@@ -53,4 +53,3 @@ class TimeKeeper {
     }
 }
 exports.default = TimeKeeper;
-//# sourceMappingURL=TimeKeeper.js.map

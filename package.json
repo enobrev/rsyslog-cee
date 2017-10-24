@@ -5,7 +5,7 @@
   "private": true,
   "author": "Mark Armendariz <src@enobrev.com>",
   "license": "MIT",
-  "main": "dist/Logger.js",
+  "main": "dist/index.js",
   "dependencies": {
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
