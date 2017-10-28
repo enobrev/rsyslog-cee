@@ -104,6 +104,10 @@
             };
         }
 
+        justAddContext(mContext: any) {
+            this._indexedLogRewriter('', '', mContext);
+        }
+
         addTag(tag: string, value: mixed) {
             this.tags[tag] = value;
         }
