@@ -153,6 +153,10 @@ class Logger {
         };
     }
 
+    justAddContext(mContext) {
+        this._indexedLogRewriter('', '', mContext);
+    }
+
     addTag(tag, value) {
         this.tags[tag] = value;
     }
