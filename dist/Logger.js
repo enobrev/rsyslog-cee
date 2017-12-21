@@ -64,11 +64,7 @@ class Logger {
                         oMeta[sStrippedKey] = oMeta[sKey];
                         delete oMeta[sKey];
 
-                        if (this.Globals[sStrippedKey] !== undefined) {
-                            Object.assign(this.Globals[sStrippedKey], oMeta[sStrippedKey]);
-                        } else {
-                            this.Globals[sStrippedKey] = oMeta[sStrippedKey];
-                        }
+                        this.Globals[sStrippedKey] = Object.assign({}, this.Globals[sStrippedKey], oMeta[sStrippedKey]);
                     }
                 });
 
