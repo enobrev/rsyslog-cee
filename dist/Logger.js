@@ -60,11 +60,15 @@ class Logger {
                     }
 
                     if (sKey.indexOf('#') === 0) {
-                        const sStrippedKey = sKey.replace('#', '');
+                        const sStrippedKey = sKey.replace(/^#+/, '');
                         oMeta[sStrippedKey] = oMeta[sKey];
                         delete oMeta[sKey];
 
-                        this.Globals[sStrippedKey] = Object.assign({}, this.Globals[sStrippedKey], oMeta[sStrippedKey]);
+                        if (['string', 'number', 'boolean'].indexOf(typeof oMeta[sStrippedKey]) > -1) {
+                            this.Globals[sStrippedKey] = oMeta[sStrippedKey];
+                        } else {
+                            this.Globals[sStrippedKey] = Object.assign({}, this.Globals[sStrippedKey], oMeta[sStrippedKey]);
+                        }
                     }
                 });
 
