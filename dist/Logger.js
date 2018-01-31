@@ -218,8 +218,12 @@ class Logger {
             if (value instanceof Error) {
                 let error = {};
 
-                Object.getOwnPropertyNames(value).forEach(function (key) {
-                    error[key] = value[key];
+                Object.getOwnPropertyNames(value).forEach(key => {
+                    if (key === 'stack') {
+                        error[key] = value[key].split('\n');
+                    } else {
+                        error[key] = value[key];
+                    }
                 });
 
                 return error;
