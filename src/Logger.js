@@ -209,6 +209,28 @@
             })
         }
 
+        /**
+         *
+         * @param {Error} oError
+         * @return {string}
+         */
+        static JSONifyError(oError) {
+            // https://stackoverflow.com/a/18391400/14651
+            return JSON.stringify(oError, (key, value) => {
+                if (value instanceof Error) {
+                    let error = {};
+
+                    Object.getOwnPropertyNames(value).forEach(function (key) {
+                        error[key] = value[key];
+                    });
+
+                    return error;
+                }
+
+                return value;
+            });
+        }
+
         d(sAction: string, oMeta: any) {
             this.log('debug', sAction, oMeta);
         }
