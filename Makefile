@@ -3,7 +3,7 @@
 build: clean install production
 
 install:
-	yarn install --production --no-progress
+	yarn install --no-progress
 
 production:
 	babel ./src --out-dir ./dist
