@@ -8,7 +8,7 @@
   "main": "dist/index.js",
   "dependencies": {
     "winston": "^2.4.1",
-    "winston-syslog": "^2.0.0"
+    "winston-syslog": "1.2.6"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
