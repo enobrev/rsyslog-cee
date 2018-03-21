@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "dependencies": {
-    "winston": "^2.4.1",
+    "winston": "2.4.1",
     "winston-syslog": "1.2.6"
   },
   "devDependencies": {
