@@ -8,12 +8,11 @@
     };
 
     import crypto           from 'crypto';
-    import Winston          from 'winston';
-    import WinstonSyslog    from 'winston-syslog';
     import Timer            from './Timer';
     import TimeKeeper       from './TimeKeeper';
 
-    require('winston-syslog'); // This has to be here or Winston shits the bed on init
+    const Winston = require('winston'); // I don't know why this won't work as an import, but once I switched to Rollup, Winston stopped playing nice, so here we are
+    require('winston-syslog');          // This has to be here or Winston shits the bed on init
 
     export default class Logger {
         Winston:         Logger;

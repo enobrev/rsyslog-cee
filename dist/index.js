@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var crypto = _interopDefault(require('crypto'));
-var Winston = _interopDefault(require('winston'));
 require('winston-syslog');
 
 class TimeKeeper {
@@ -141,6 +140,7 @@ class Timer {
     }
 }
 
+const Winston = require('winston');
 require('winston-syslog'); // This has to be here or Winston shits the bed on init
 
 class Logger {
