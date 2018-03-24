@@ -5,6 +5,10 @@
   "author": "Mark Armendariz <src@enobrev.com>",
   "license": "MIT",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enobrev/winston-rsyslog-cee.git"
+  },
   "dependencies": {
     "winston": "2.4.1",
     "winston-syslog": "1.2.6"
