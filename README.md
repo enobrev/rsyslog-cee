@@ -7,7 +7,7 @@
 
 # Options
 
-```
+```javascript
     // import {Logger} from 'winston-rsyslog-cee'; OR
     const Logger = require('winston-rsyslog-cee').Logger;
 
