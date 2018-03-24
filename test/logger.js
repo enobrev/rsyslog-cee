@@ -10,11 +10,11 @@ setTimeout(function() {
     oLogger.removeSyslog();
 }, 1000);
 
-oLogger.d('Debug');
-oLogger.w('Warn');
-oLogger.i('Info');
-oLogger.n('Notice');
-oLogger.e('Error');
-oLogger.c('Critical');
-oLogger.a('Alert');
-oLogger.em('Emergency');
+oLogger.d('Debug', {test: 'Debugging'});
+oLogger.w('Warn', {test: 'Warning'});
+oLogger.i('Info', {test: 'Information'});
+oLogger.n('Notice', {test: 'Notification'});
+oLogger.e('Error', {test: 'Error!'});
+oLogger.c('Critical', {test: 'Critical!'});
+oLogger.a('Alert', {test: 'Hey!'});
+oLogger.em('Emergency', {test: 'OMGWTF!!'});
