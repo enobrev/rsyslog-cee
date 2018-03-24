@@ -6,10 +6,10 @@ install:
 	yarn install --no-progress
 
 production:
-	babel ./src --out-dir ./dist
+	rollup -c
 
 watch:
-	babel ./src --source-maps --watch --out-dir ./dist
+	rollup -c -w
 
 clean:
 	rm ./dist -Rf

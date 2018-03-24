@@ -1,8 +1,7 @@
 {
-  "name": "enobrev-node-tools",
+  "name": "winston-rsyslog-cee",
   "version": "0.1.1",
-  "description": "General Tools for Node.js Projects",
-  "private": true,
+  "description": "Publishes CEE-Enhanced Logs to Rsyslog with some custom parameters for indexing and searching",
   "author": "Mark Armendariz <src@enobrev.com>",
   "license": "MIT",
   "main": "dist/index.js",
@@ -12,8 +11,11 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
-    "babel-preset-env": "^1.6.1"
+    "babel-preset-env": "^1.6.1",
+    "rollup-plugin-babel": "^3.0.3",
+    "rollup-watch": "^4.3.1"
   }
 }
