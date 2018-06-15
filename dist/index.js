@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var crypto = _interopDefault(require('crypto'));
-require('winston-syslog');
 
 class TimeKeeper {
 
@@ -140,7 +139,7 @@ class Timer {
     }
 }
 
-const Winston = require('winston');
+const Winston = require('winston'); // I don't know why this won't work as an import, but once I switched to Rollup, Winston stopped playing nice, so here we are
 require('winston-syslog'); // This has to be here or Winston shits the bed on init
 
 class Logger {

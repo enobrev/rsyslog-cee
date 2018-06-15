@@ -10,7 +10,7 @@
     "url": "https://github.com/enobrev/winston-rsyslog-cee.git"
   },
   "dependencies": {
-    "winston": "2.4.1",
+    "winston": "2.4.3",
     "winston-syslog": "1.2.6"
   },
   "devDependencies": {
