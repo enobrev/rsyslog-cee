@@ -9,8 +9,8 @@ This is a fork of [winston-rsyslog-cee](https://github.com/enobrev/winston-rsysl
 # Options
 
 ```javascript
-    // import {Logger} from 'winston-rsyslog-cee'; OR
-    const Logger = require('winston-rsyslog-cee').Logger;
+    // import {Logger} from 'rsyslog-cee'; OR
+    const Logger = require('rsyslog-cee').Logger;
 
     const oLogger = new Logger(
         {
