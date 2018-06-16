@@ -8,14 +8,11 @@
     };
 
     import crypto           from 'crypto';
+    import Syslogh          from 'syslogh';
     import Timer            from './Timer';
     import TimeKeeper       from './TimeKeeper';
 
-    const Winston = require('winston'); // I don't know why this won't work as an import, but once I switched to Rollup, Winston stopped playing nice, so here we are
-    require('winston-syslog');          // This has to be here or Winston shits the bed on init
-
     export default class Logger {
-        Winston:         Logger;
         Globals:         {};
 
         service:         string;
@@ -28,22 +25,17 @@
         is_error:        boolean;
         purpose:         string;
         start_timestamp: string;
+        console:         boolean;
+        syslog:          boolean;
 
         constructor(oOptions: LoggerOptions) {
             this.Globals = {};
-            let aTransports = [];
 
             if (!oOptions.service) {
                 throw new Error('Please set service name in options');
             }
 
             this.service = oOptions.service;
-
-            this.Winston = new Winston.Logger({
-                level:      'debug'
-            }).setLevels(Winston.config.syslog.levels);
-
-            this.Winston.rewriters.push(this._indexedLogRewriter);
 
             if (oOptions.console) {
                 this.addConsole();
@@ -69,31 +61,21 @@
         }
 
         addConsole() {
-            this.Winston.add(Winston.transports.Console, {
-                app_name:  'icon-server',
-                timestamp: true,
-                colorize:  true,
-                json:      true,
-                level:     'debug'
-            });
+            this.console = true;
         }
 
         removeConsole() {
-            this.Winston.remove(Winston.transports.Console.prototype.name);
+            this.console = false;
         }
 
         addSyslog() {
-            this.Winston.add(Winston.transports.Syslog, {
-                app_name:  this.service,
-                localhost: null, // Keep localhost out of syslog messages
-                protocol:  'unix-connect',
-                path:      '/dev/log',
-                formatter: Logger._syslogFormatter
-            });
+            this.syslog = true;
+            Syslogh.openlog(this.service, Syslogh.PID, Syslogh.LOCAL7)
         }
 
         removeSyslog() {
-            this.Winston.remove(Winston.transports.Syslog.prototype.name);
+            this.syslog = false;
+            Syslogh.closelog();
         }
 
         getTraceTags() {
@@ -123,15 +105,15 @@
             sPath.split('.').reduce((oValue: {}, sKey: string, iIndex: number, aSplit: any) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
         };
 
-        static _syslogFormatter (oOptions: any) {
-            return '@cee: ' + JSON.stringify(oOptions.meta, (sKey, mValue) => {
+        static _syslogFormatter (oMessage: any) {
+            return '@cee: ' + JSON.stringify(oMessage, (sKey, mValue) => {
                 return mValue instanceof Buffer
                     ? mValue.toString('base64')
                     : mValue;
             });
         };
 
-        _indexedLogRewriter = (sLevel: string, sMessage: string, oMeta: any) => {
+        _indexedLogRewriter = (sMessage: string, oMeta: any) => {
             let oOutput: any = {
                 '--action': sMessage
             };
@@ -180,15 +162,33 @@
             return oOutput;
         };
 
-        log(sSeverity: string, sAction: string, oMeta: any) {
-            this.Winston.log(sSeverity, sAction, oMeta);
+        log(iSeverity: number, sAction: string, oMeta: any) {
+            const oMessage = this._indexedLogRewriter(sAction, oMeta);
+            const sMessage = Logger._syslogFormatter(oMessage);
+
+            if (this.syslog) {
+                Syslogh.syslog(iSeverity, sMessage);
+            }
+
+            if (this.console) {
+                switch (iSeverity) {
+                    case Syslogh.DEBUG:   console.debug('DEBUG',   oMessage); break;
+                    case Syslogh.INFO:    console.info( 'INFO',    oMessage); break;
+                    case Syslogh.NOTICE:  console.log(  'NOTICE',  oMessage); break;
+                    case Syslogh.WARNING: console.warn( 'WARNING', oMessage); break;
+                    case Syslogh.ERR:     console.error('ERR',     oMessage); break;
+                    case Syslogh.CRIT:    console.error('CRIT',    oMessage); break;
+                    case Syslogh.ALERT:   console.error('ALERT',   oMessage); break;
+                    case Syslogh.EMERG:   console.error('EMERG',   oMessage); break;
+                }
+            }
         }
 
         summary(sOverrideName: ?string = 'Summary') {
             this.index++;
             const iTimer = this.metrics.stop('_REQUEST');
 
-            this.Winston.log('info', [this.service, sOverrideName].join('.'), {
+            this.log(Syslogh.INFO, [this.service, sOverrideName].join('.'), {
                 '--ms':          iTimer,
                 '--i':           this.index,
                 '--summary':     true,
@@ -235,35 +235,35 @@
         }
 
         d(sAction: string, oMeta: any) {
-            this.log('debug', sAction, oMeta);
+            this.log(Syslogh.DEBUG, sAction, oMeta);
         }
 
         i(sAction: string, oMeta: any) {
-            this.log('info', sAction, oMeta);
+            this.log(Syslogh.INFO, sAction, oMeta);
         }
 
         n(sAction: string, oMeta: any) {
-            this.log('notice', sAction, oMeta);
+            this.log(Syslogh.NOTICE, sAction, oMeta);
         }
 
         w(sAction: string, oMeta: any) {
-            this.log('warning', sAction, oMeta);
+            this.log(Syslogh.WARNING, sAction, oMeta);
         }
 
         e(sAction: string, oMeta: any) {
-            this.log('error', sAction, oMeta);
+            this.log(Syslogh.ERR, sAction, oMeta);
         }
 
         c(sAction: string, oMeta: any) {
-            this.log('crit', sAction, oMeta);
+            this.log(Syslogh.CRIT, sAction, oMeta);
         }
 
         a(sAction: string, oMeta: any) {
-            this.log('alert', sAction, oMeta);
+            this.log(Syslogh.ALERT, sAction, oMeta);
         }
 
         em(sAction: string, oMeta: any) {
-            this.log('emerg', sAction, oMeta);
+            this.log(Syslogh.EMERG, sAction, oMeta);
         }
 
         dt(oTime: TimeKeeper, sActionOverride: ?string) {

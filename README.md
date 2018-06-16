@@ -1,9 +1,10 @@
+This is a fork of winston-rsyslog-cee, but it sends directly to syslog instead of using winston.
 
 # Install
 
-`npm install winston-rsyslog-cee`
+`npm install rsyslog-cee`
 
-`yarn add winston-rsyslog-cee`
+`yarn add rsyslog-cee`
 
 # Options
 
