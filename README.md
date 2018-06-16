@@ -1,4 +1,4 @@
-This is a fork of winston-rsyslog-cee, but it sends directly to syslog instead of using winston.
+This is a fork of [winston-rsyslog-cee](https://github.com/enobrev/winston-rsyslog-cee), but it sends directly to syslog instead of using winston.
 
 # Install
 
