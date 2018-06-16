@@ -6,6 +6,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var crypto = _interopDefault(require('crypto'));
 var Syslogh = _interopDefault(require('syslogh'));
+var util = _interopDefault(require('util'));
 
 class TimeKeeper {
 
@@ -275,6 +276,7 @@ class Logger {
     }
 
     log(iSeverity, sAction, oMeta) {
+        oMeta = Logger.JSONifyErrors(oMeta);
         const oMessage = this._indexedLogRewriter(sAction, oMeta);
         const sMessage = Logger._syslogFormatter(oMessage);
 
@@ -330,13 +332,13 @@ class Logger {
 
     /**
      *
-     * @param {Error} oError
+     * @param {object} oMeta
      * @return {string}
      */
-    static JSONifyError(oError) {
+    static JSONifyErrors(oMeta) {
         // https://stackoverflow.com/a/18391400/14651
-        return JSON.stringify(oError, (key, value) => {
-            if (value instanceof Error) {
+        return JSON.parse(JSON.stringify(oMeta, (key, value) => {
+            if (util.types && util.types.isNativeError ? util.types.isNativeError(value) : util.isError(value)) {
                 let error = {};
 
                 Object.getOwnPropertyNames(value).forEach(key => {
@@ -351,7 +353,7 @@ class Logger {
             }
 
             return value;
-        });
+        }));
     }
 
     d(sAction, oMeta) {

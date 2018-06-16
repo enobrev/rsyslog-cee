@@ -9,6 +9,7 @@
 
     import crypto           from 'crypto';
     import Syslogh          from 'syslogh';
+    import util             from 'util';
     import Timer            from './Timer';
     import TimeKeeper       from './TimeKeeper';
 
@@ -163,6 +164,7 @@
         };
 
         log(iSeverity: number, sAction: string, oMeta: any) {
+            oMeta = Logger.JSONifyErrors(oMeta);
             const oMessage = this._indexedLogRewriter(sAction, oMeta);
             const sMessage = Logger._syslogFormatter(oMessage);
 
@@ -210,13 +212,13 @@
 
         /**
          *
-         * @param {Error} oError
+         * @param {object} oMeta
          * @return {string}
          */
-        static JSONifyError(oError) {
+        static JSONifyErrors(oMeta) {
             // https://stackoverflow.com/a/18391400/14651
-            return JSON.stringify(oError, (key, value) => {
-                if (value instanceof Error) {
+            return JSON.parse(JSON.stringify(oMeta, (key, value) => {
+                if ((util.types && util.types.isNativeError) ? util.types.isNativeError(value) : util.isError(value)) {
                     let error = {};
 
                     Object.getOwnPropertyNames(value).forEach(key => {
@@ -231,7 +233,7 @@
                 }
 
                 return value;
-            });
+            }));
         }
 
         d(sAction: string, oMeta: any) {
