@@ -336,24 +336,37 @@ class Logger {
      * @return {string}
      */
     static JSONifyErrors(oMeta) {
-        // https://stackoverflow.com/a/18391400/14651
-        return JSON.parse(JSON.stringify(oMeta, (key, value) => {
-            if (util.types && util.types.isNativeError ? util.types.isNativeError(value) : util.isError(value)) {
-                let error = {};
+        if (oMeta) {
+            let bFoundErrors = false;
 
-                Object.getOwnPropertyNames(value).forEach(key => {
-                    if (key === 'stack') {
-                        error[key] = value[key].split('\n');
-                    } else {
-                        error[key] = value[key];
-                    }
-                });
+            // https://stackoverflow.com/a/18391400/14651
+            const sMeta = JSON.stringify(oMeta, (key, value) => {
+                if (util.types && util.types.isNativeError ? util.types.isNativeError(value) : util.isError(value)) {
+                    bFoundErrors = true;
+                    let error = {};
 
-                return error;
+                    Object.getOwnPropertyNames(value).forEach(key => {
+                        if (key === 'stack') {
+                            error[key] = value[key].split('\n');
+                        } else {
+                            error[key] = value[key];
+                        }
+                    });
+
+                    return error;
+                }
+
+                return value;
+            });
+
+            if (bFoundErrors && sMeta) {
+                return JSON.parse(sMeta);
+            } else if (sMeta) {
+                return sMeta;
             }
+        }
 
-            return value;
-        }));
+        return oMeta;
     }
 
     d(sAction, oMeta) {
