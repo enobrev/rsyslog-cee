@@ -285,23 +285,24 @@ class Logger {
         }
 
         if (this.console) {
+            const sMessage = JSON.stringify(oMessage, null, '   ');
             switch (iSeverity) {
                 case Syslogh.DEBUG:
-                    console.debug('DEBUG', oMessage);break;
+                    console.debug('DEBUG', sMessage);break;
                 case Syslogh.INFO:
-                    console.info('INFO', oMessage);break;
+                    console.info('INFO', sMessage);break;
                 case Syslogh.NOTICE:
-                    console.log('NOTICE', oMessage);break;
+                    console.log('NOTICE', sMessage);break;
                 case Syslogh.WARNING:
-                    console.warn('WARNING', oMessage);break;
+                    console.warn('WARNING', sMessage);break;
                 case Syslogh.ERR:
-                    console.error('ERR', oMessage);break;
+                    console.error('ERR', sMessage);break;
                 case Syslogh.CRIT:
-                    console.error('CRIT', oMessage);break;
+                    console.error('CRIT', sMessage);break;
                 case Syslogh.ALERT:
-                    console.error('ALERT', oMessage);break;
+                    console.error('ALERT', sMessage);break;
                 case Syslogh.EMERG:
-                    console.error('EMERG', oMessage);break;
+                    console.error('EMERG', sMessage);break;
             }
         }
     }
@@ -361,8 +362,6 @@ class Logger {
 
             if (bFoundErrors && sMeta) {
                 return JSON.parse(sMeta);
-            } else if (sMeta) {
-                return sMeta;
             }
         }
 

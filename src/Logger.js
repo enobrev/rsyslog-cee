@@ -173,15 +173,16 @@
             }
 
             if (this.console) {
+                const sMessage = JSON.stringify(oMessage, null, '   ');
                 switch (iSeverity) {
-                    case Syslogh.DEBUG:   console.debug('DEBUG',   oMessage); break;
-                    case Syslogh.INFO:    console.info( 'INFO',    oMessage); break;
-                    case Syslogh.NOTICE:  console.log(  'NOTICE',  oMessage); break;
-                    case Syslogh.WARNING: console.warn( 'WARNING', oMessage); break;
-                    case Syslogh.ERR:     console.error('ERR',     oMessage); break;
-                    case Syslogh.CRIT:    console.error('CRIT',    oMessage); break;
-                    case Syslogh.ALERT:   console.error('ALERT',   oMessage); break;
-                    case Syslogh.EMERG:   console.error('EMERG',   oMessage); break;
+                    case Syslogh.DEBUG:   console.debug('DEBUG',   sMessage); break;
+                    case Syslogh.INFO:    console.info( 'INFO',    sMessage); break;
+                    case Syslogh.NOTICE:  console.log(  'NOTICE',  sMessage); break;
+                    case Syslogh.WARNING: console.warn( 'WARNING', sMessage); break;
+                    case Syslogh.ERR:     console.error('ERR',     sMessage); break;
+                    case Syslogh.CRIT:    console.error('CRIT',    sMessage); break;
+                    case Syslogh.ALERT:   console.error('ALERT',   sMessage); break;
+                    case Syslogh.EMERG:   console.error('EMERG',   sMessage); break;
                 }
             }
         }
@@ -216,24 +217,35 @@
          * @return {string}
          */
         static JSONifyErrors(oMeta) {
-            // https://stackoverflow.com/a/18391400/14651
-            return JSON.parse(JSON.stringify(oMeta, (key, value) => {
-                if ((util.types && util.types.isNativeError) ? util.types.isNativeError(value) : util.isError(value)) {
-                    let error = {};
+            if (oMeta) {
+                let bFoundErrors = false;
 
-                    Object.getOwnPropertyNames(value).forEach(key => {
-                        if (key === 'stack') {
-                            error[key] = value[key].split('\n');
-                        } else {
-                            error[key] = value[key];
-                        }
-                    });
+                // https://stackoverflow.com/a/18391400/14651
+                const sMeta = JSON.stringify(oMeta, (key, value) => {
+                    if (util.types && util.types.isNativeError ? util.types.isNativeError(value) : util.isError(value)) {
+                        bFoundErrors = true;
+                        let error = {};
 
-                    return error;
+                        Object.getOwnPropertyNames(value).forEach(key => {
+                            if (key === 'stack') {
+                                error[key] = value[key].split('\n');
+                            } else {
+                                error[key] = value[key];
+                            }
+                        });
+
+                        return error;
+                    }
+
+                    return value;
+                });
+
+                if (bFoundErrors && sMeta) {
+                    return JSON.parse(sMeta);
                 }
+            }
 
-                return value;
-            }));
+            return oMeta;
         }
 
         d(sAction: string, oMeta: any) {
