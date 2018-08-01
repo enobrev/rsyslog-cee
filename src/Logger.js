@@ -115,14 +115,16 @@
         };
 
         _indexedLogRewriter = (sMessage: string, oMeta: any) => {
+            let oClone = oMeta ? Object.assign({}, oMeta) : {};
+
             let oOutput: any = {
                 '--action': sMessage
             };
 
-            if (oMeta) {
-                if (oMeta.action) {
-                    oOutput['--action'] = oMeta.action;
-                    delete oMeta.action;
+            if (oClone) {
+                if (oClone.action) {
+                    oOutput['--action'] = oClone.action;
+                    delete oClone.action;
                 }
 
                 this.index++;
@@ -136,27 +138,27 @@
                 }
 
                 // Move all "--*" items to root
-                Object.keys(oMeta).map(sKey => {
+                Object.keys(oClone).map(sKey => {
                     if (sKey.indexOf('--') === 0) {
-                        oOutput[sKey] = oMeta[sKey];
-                        delete oMeta[sKey];
+                        oOutput[sKey] = oClone[sKey];
+                        delete oClone[sKey];
                     }
 
                     if (sKey.indexOf('#') === 0) {
                         const sStrippedKey = sKey.replace(/^#+/, '');
-                        oMeta[sStrippedKey] = oMeta[sKey];
-                        delete oMeta[sKey];
+                        oClone[sStrippedKey] = oClone[sKey];
+                        delete oClone[sKey];
 
-                        if (['string', 'number', 'boolean'].indexOf(typeof oMeta[sStrippedKey]) > -1) {
-                            this.Globals[sStrippedKey] = oMeta[sStrippedKey];
+                        if (['string', 'number', 'boolean'].indexOf(typeof oClone[sStrippedKey]) > -1) {
+                            this.Globals[sStrippedKey] = oClone[sStrippedKey];
                         } else {
-                            this.Globals[sStrippedKey] = Object.assign({}, this.Globals[sStrippedKey], oMeta[sStrippedKey]);
+                            this.Globals[sStrippedKey] = Object.assign({}, this.Globals[sStrippedKey], oClone[sStrippedKey]);
                         }
                     }
                 });
 
-                if (Object.keys(oMeta).length > 0) {
-                    Logger._objectFromPath(oOutput, oOutput['--action'], oMeta);
+                if (Object.keys(oClone).length > 0) {
+                    Logger._objectFromPath(oOutput, oOutput['--action'], oClone);
                 }
             }
 
