@@ -188,7 +188,7 @@
         }
 
         /**
-         * 
+         *
          * @param sOverrideName
          * @returns {{"--ms": *, "--i": number, "--summary": boolean, "--span": {_format: string, version: number, start_timestamp: string, end_timestamp: string, service: string, indicator: boolean, metrics: string, error: boolean, name: string, tags: {}, context: {}}}}
          */

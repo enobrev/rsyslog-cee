@@ -307,11 +307,15 @@ class Logger {
         }
     }
 
+    /**
+     *
+     * @param sOverrideName
+     * @returns {{"--ms": *, "--i": number, "--summary": boolean, "--span": {_format: string, version: number, start_timestamp: string, end_timestamp: string, service: string, indicator: boolean, metrics: string, error: boolean, name: string, tags: {}, context: {}}}}
+     */
     summary(sOverrideName = 'Summary') {
         this.index++;
         const iTimer = this.metrics.stop('_REQUEST');
-
-        this.log(Syslogh.INFO, [this.service, sOverrideName].join('.'), {
+        const oSummary = {
             '--ms': iTimer,
             '--i': this.index,
             '--summary': true,
@@ -328,7 +332,11 @@ class Logger {
                 tags: this.tags,
                 context: this.Globals
             }
-        });
+        };
+
+        this.log(Syslogh.INFO, [this.service, sOverrideName].join('.'), oSummary);
+
+        return oSummary;
     }
 
     /**
