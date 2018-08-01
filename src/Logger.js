@@ -164,8 +164,8 @@
         };
 
         log(iSeverity: number, sAction: string, oMeta: any) {
-            oMeta = Logger.JSONifyErrors(oMeta);
-            const oMessage = this._indexedLogRewriter(sAction, oMeta);
+            const oParsed  = Logger.JSONifyErrors(oMeta);
+            const oMessage = this._indexedLogRewriter(sAction, oParsed);
             const sMessage = Logger._syslogFormatter(oMessage);
 
             if (this.syslog) {
