@@ -1,4 +1,4 @@
-.PHONY : build install production watch clean
+.PHONY : build install production clean
 
 build: clean install production
 
@@ -7,9 +7,6 @@ install:
 
 production:
 	yarn build
-
-watch:
-	yarn watch
 
 clean:
 	rm ./dist -Rf
