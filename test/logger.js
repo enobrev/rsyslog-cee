@@ -1,5 +1,3 @@
-"use strict";
-
 const Logger = require('../dist/index').Logger;
 
 const oLogger = new Logger({service: 'Test', console: true, syslog: true});

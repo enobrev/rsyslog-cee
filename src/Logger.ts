@@ -1,8 +1,8 @@
-    // @flow
     export type LoggerOptions = {
         service:        string,
         thread_hash?:   string,
         parent_hash?:   string,
+
         console?:       boolean,
         syslog?:        boolean
     };
@@ -14,23 +14,34 @@
     import TimeKeeper       from './TimeKeeper';
 
     export default class Logger {
-        Globals:         {};
 
-        service:         string;
-        index:           number;
-        metrics:         Timer;
-        request_hash:    string;
-        thread_hash:     string;
-        parent_hash:     string;
-        tags:            {};
-        is_error:        boolean;
-        purpose:         string;
-        start_timestamp: string;
-        console:         boolean;
-        syslog:          boolean;
+        readonly service:         string;
+        readonly request_hash:    string;
+        readonly thread_hash:     string;
+        readonly parent_hash?:    string;
+        readonly start_timestamp: string;
+
+        private index:           number;
+        private metrics:         Timer;
+        private is_error:        boolean;
+        private console:         boolean;
+        private syslog:          boolean;
+        private purpose?:        string;
+
+        readonly Globals:         {
+            [index: string]: any
+        };
+
+        private tags?:           {
+            [index: string]: any
+        };
 
         constructor(oOptions: LoggerOptions) {
-            this.Globals = {};
+            this.Globals    = {};
+            this.index      = 0;
+            this.is_error   = false;
+            this.console    = false;
+            this.syslog     = false;
 
             if (!oOptions.service) {
                 throw new Error('Please set service name in options');
@@ -45,8 +56,6 @@
             if (oOptions.syslog) {
                 this.addSyslog();
             }
-
-            this.index = 0;
 
             this.request_hash = crypto.createHash('sha1').update('' + TimeKeeper.getTime()).digest('hex').substring(0, 8);
             this.thread_hash  = oOptions.thread_hash ? oOptions.thread_hash : this.request_hash;
@@ -87,10 +96,14 @@
         }
 
         justAddContext(mContext: any) {
-            this._indexedLogRewriter('', '', mContext);
+            this._indexedLogRewriter('', mContext);
         }
 
-        addTag(tag: string, value: mixed) {
+        addTag(tag: string, value: any) {
+            if (!this.tags) {
+                this.tags = {};
+            }
+
             this.tags[tag] = value;
         }
 
@@ -103,7 +116,7 @@
         }
 
         static _objectFromPath (oObject: any, sPath: string, mValue: any) {
-            sPath.split('.').reduce((oValue: {}, sKey: string, iIndex: number, aSplit: any) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
+            sPath.split('.').reduce((oValue: {[index: string]: any}, sKey: string, iIndex: number, aSplit: any) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
         };
 
         static _syslogFormatter (oMessage: any) {
@@ -194,7 +207,7 @@
          * @param sOverrideName
          * @returns {{"--ms": *, "--i": number, "--summary": boolean, "--span": {_format: string, version: number, start_timestamp: string, end_timestamp: string, service: string, indicator: boolean, metrics: string, error: boolean, name: string, tags: {}, context: {}}}}
          */
-        summary(sOverrideName: ?string = 'Summary') {
+        summary(sOverrideName: string = 'Summary') {
             this.index++;
             const iTimer = this.metrics.stop('_REQUEST');
             const oSummary = {
@@ -226,28 +239,28 @@
          * @param {object} oMeta
          * @return {string}
          */
-        static JSONifyErrors(oMeta) {
+        static JSONifyErrors(oMeta: object) {
             if (oMeta) {
                 let bFoundErrors = false;
 
                 // https://stackoverflow.com/a/18391400/14651
-                const sMeta = JSON.stringify(oMeta, (key, value) => {
-                    if (util.types && util.types.isNativeError ? util.types.isNativeError(value) : util.isError(value)) {
+                const sMeta = JSON.stringify(oMeta, (sKey: string , mValue: any) => {
+                    if (util.types && util.types.isNativeError ? util.types.isNativeError(mValue) : util.isError(mValue)) {
                         bFoundErrors = true;
-                        let error = {};
+                        let oError: {[index: string]: any} = {};
 
-                        Object.getOwnPropertyNames(value).forEach(key => {
-                            if (key === 'stack') {
-                                error[key] = value[key].split('\n');
+                        Object.getOwnPropertyNames(mValue).forEach(sKey => {
+                            if (sKey === 'stack') {
+                                oError[sKey] = mValue[sKey].split('\n');
                             } else {
-                                error[key] = value[key];
+                                oError[sKey] = mValue[sKey];
                             }
                         });
 
-                        return error;
+                        return oError;
                     }
 
-                    return value;
+                    return mValue;
                 });
 
                 if (bFoundErrors && sMeta) {
@@ -290,7 +303,7 @@
             this.log(Syslogh.EMERG, sAction, oMeta);
         }
 
-        dt(oTime: TimeKeeper, sActionOverride: ?string) {
+        dt(oTime: TimeKeeper, sActionOverride?: string) {
             this.d(sActionOverride ? sActionOverride : oTime.label(), {'--ms': oTime.stop()});
         }
         
