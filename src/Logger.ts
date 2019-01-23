@@ -127,7 +127,7 @@
             });
         };
 
-        _indexedLogRewriter = (sMessage: string, oMeta: any) => {
+        _indexedLogRewriter = (sMessage: string, oMeta?: any) => {
             let oClone = oMeta ? Object.assign({}, oMeta) : {};
 
             let oOutput: any = {
@@ -178,7 +178,7 @@
             return oOutput;
         };
 
-        log(iSeverity: number, sAction: string, oMeta: any) {
+        private log(iSeverity: number, sAction: string, oMeta?: any) {
             const oParsed  = Logger.JSONifyErrors(oMeta);
             const oMessage = this._indexedLogRewriter(sAction, oParsed);
             const sMessage = Logger._syslogFormatter(oMessage);
@@ -271,35 +271,35 @@
             return oMeta;
         }
 
-        d(sAction: string, oMeta: any) {
+        d(sAction: string, oMeta?: any) {
             this.log(Syslogh.DEBUG, sAction, oMeta);
         }
 
-        i(sAction: string, oMeta: any) {
+        i(sAction: string, oMeta?: any) {
             this.log(Syslogh.INFO, sAction, oMeta);
         }
 
-        n(sAction: string, oMeta: any) {
+        n(sAction: string, oMeta?: any) {
             this.log(Syslogh.NOTICE, sAction, oMeta);
         }
 
-        w(sAction: string, oMeta: any) {
+        w(sAction: string, oMeta?: any) {
             this.log(Syslogh.WARNING, sAction, oMeta);
         }
 
-        e(sAction: string, oMeta: any) {
+        e(sAction: string, oMeta?: any) {
             this.log(Syslogh.ERR, sAction, oMeta);
         }
 
-        c(sAction: string, oMeta: any) {
+        c(sAction: string, oMeta?: any) {
             this.log(Syslogh.CRIT, sAction, oMeta);
         }
 
-        a(sAction: string, oMeta: any) {
+        a(sAction: string, oMeta?: any) {
             this.log(Syslogh.ALERT, sAction, oMeta);
         }
 
-        em(sAction: string, oMeta: any) {
+        em(sAction: string, oMeta?: any) {
             this.log(Syslogh.EMERG, sAction, oMeta);
         }
 

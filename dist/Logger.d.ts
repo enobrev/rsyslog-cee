@@ -37,8 +37,8 @@ export default class Logger {
     setPurpose(purpose: string): void;
     static _objectFromPath(oObject: any, sPath: string, mValue: any): void;
     static _syslogFormatter(oMessage: any): string;
-    _indexedLogRewriter: (sMessage: string, oMeta: any) => any;
-    log(iSeverity: number, sAction: string, oMeta: any): void;
+    _indexedLogRewriter: (sMessage: string, oMeta?: any) => any;
+    private log;
     /**
      *
      * @param sOverrideName
@@ -72,14 +72,14 @@ export default class Logger {
      * @return {string}
      */
     static JSONifyErrors(oMeta: object): any;
-    d(sAction: string, oMeta: any): void;
-    i(sAction: string, oMeta: any): void;
-    n(sAction: string, oMeta: any): void;
-    w(sAction: string, oMeta: any): void;
-    e(sAction: string, oMeta: any): void;
-    c(sAction: string, oMeta: any): void;
-    a(sAction: string, oMeta: any): void;
-    em(sAction: string, oMeta: any): void;
+    d(sAction: string, oMeta?: any): void;
+    i(sAction: string, oMeta?: any): void;
+    n(sAction: string, oMeta?: any): void;
+    w(sAction: string, oMeta?: any): void;
+    e(sAction: string, oMeta?: any): void;
+    c(sAction: string, oMeta?: any): void;
+    a(sAction: string, oMeta?: any): void;
+    em(sAction: string, oMeta?: any): void;
     dt(oTime: TimeKeeper, sActionOverride?: string): void;
     startTimer(sLabel: string): TimeKeeper;
     stopTimer(sLabel: string): number;

@@ -6,10 +6,10 @@ install:
 	yarn install --no-progress
 
 production:
-	rollup -c
+	yarn build
 
 watch:
-	rollup -c -w
+	yarn watch
 
 clean:
 	rm ./dist -Rf
