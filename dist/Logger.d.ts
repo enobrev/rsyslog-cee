@@ -57,7 +57,6 @@ export default class Logger {
             start_timestamp: string;
             end_timestamp: string;
             service: string;
-            indicator: boolean;
             metrics: string;
             error: boolean;
             name: string | undefined;

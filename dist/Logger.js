@@ -195,7 +195,6 @@ class Logger {
                 start_timestamp: this.start_timestamp,
                 end_timestamp: new Date().toISOString(),
                 service: this.service,
-                indicator: false,
                 metrics: JSON.stringify(this.metrics.getAll()),
                 error: this.is_error,
                 name: this.purpose,
