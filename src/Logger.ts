@@ -12,6 +12,11 @@
         request?:       http.IncomingMessage
     }
 
+    export type TraceTags = {
+        '--t'?: string
+        '--p'?: string
+    }
+
     import crypto           from 'crypto';
     import Syslogh          from 'syslogh';
     import util             from 'util';
@@ -121,7 +126,7 @@
             Syslogh.closelog();
         }
 
-        getTraceTags() {
+        getTraceTags(): TraceTags {
             return {
                 '--t': this.thread_hash,
                 '--p': this.request_hash
@@ -174,7 +179,7 @@
             sPath.split('.').reduce((oValue: {[index: string]: any}, sKey: string, iIndex: number, aSplit: any) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
         };
 
-        static _syslogFormatter (oMessage: any) {
+        static _syslogFormatter (oMessage: any): string {
             return '@cee: ' + JSON.stringify(oMessage, (sKey, mValue) => {
                 return mValue instanceof Buffer
                     ? mValue.toString('base64')
@@ -361,11 +366,11 @@
             this.d(sActionOverride ? sActionOverride : oTime.label(), {'--ms': oTime.stop()});
         }
         
-        startTimer(sLabel: string) {
+        startTimer(sLabel: string): TimeKeeper {
             return this.metrics.start(sLabel);
         }
 
-        stopTimer(sLabel: string) {
+        stopTimer(sLabel: string): number {
             return this.metrics.stop(sLabel);
         }
     }

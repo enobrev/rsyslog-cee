@@ -9,6 +9,10 @@ export declare type LoggerOptions = {
     syslog?: boolean;
     request?: http.IncomingMessage;
 };
+export declare type TraceTags = {
+    '--t'?: string;
+    '--p'?: string;
+};
 import TimeKeeper from './TimeKeeper';
 export default class Logger {
     readonly service: string;
@@ -31,10 +35,7 @@ export default class Logger {
     removeConsole(): void;
     addSyslog(): void;
     removeSyslog(): void;
-    getTraceTags(): {
-        '--t': string;
-        '--p': string;
-    };
+    getTraceTags(): TraceTags;
     justAddContext(mContext: any): void;
     addRequestContext(oRequest: http.IncomingMessage): void;
     addTag(tag: string, value: any): void;
