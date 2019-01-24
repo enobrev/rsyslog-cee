@@ -2,7 +2,7 @@
 
     export type LoggerOptions = {
         service:        string,
-        purpose:        string,
+        purpose?:       string,
         thread_hash?:   string,
         parent_hash?:   string,
 

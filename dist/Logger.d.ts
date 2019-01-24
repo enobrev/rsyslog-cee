@@ -2,6 +2,7 @@
 import http from "http";
 export declare type LoggerOptions = {
     service: string;
+    purpose?: string;
     thread_hash?: string;
     parent_hash?: string;
     console?: boolean;

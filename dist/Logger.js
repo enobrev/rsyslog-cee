@@ -80,6 +80,7 @@ class Logger {
             if (oUrl.query['--p']) {
                 this.parent_hash = oUrl.query['--p'];
             }
+            this.addRequestContext(oOptions.request);
         }
         else {
             if (oOptions.thread_hash) {
@@ -92,6 +93,9 @@ class Logger {
         this.metrics = new Timer_1.default();
         this.metrics.start('_REQUEST');
         this.start_timestamp = new Date().toISOString();
+        if (oOptions.purpose) {
+            this.setPurpose(oOptions.purpose);
+        }
     }
     addConsole() {
         this.console = true;
