@@ -1,6 +1,6 @@
 {
   "name": "rsyslog-cee",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Publishes CEE-Enhanced Logs to Rsyslog with some custom parameters for indexing and searching",
   "author": "Mark Armendariz <src@enobrev.com>",
   "license": "MIT",
