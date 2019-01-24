@@ -35,6 +35,7 @@ export default class Logger {
         '--p': string;
     };
     justAddContext(mContext: any): void;
+    addRequestContext(oRequest: http.IncomingMessage): void;
     addTag(tag: string, value: any): void;
     setProcessIsError(is_error: boolean): void;
     setPurpose(purpose: string): void;

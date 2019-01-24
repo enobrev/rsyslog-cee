@@ -126,6 +126,28 @@
             this._indexedLogRewriter('', mContext);
         }
 
+        addRequestContext(oRequest: http.IncomingMessage) {
+            this._indexedLogRewriter('', {
+                '#request': {
+                    headers:    JSON.stringify(oRequest.headers),
+                    host:       oRequest.headers.host,
+                    method:     oRequest.method,
+                    parameters: {
+                        path:  null,
+                        post:  null,
+                        query: null
+                    },
+                    path:       null,
+                    referrer:   oRequest.headers.referer,
+                    uri:        oRequest.url
+                },
+                '#user': {
+                    agent: oRequest.headers['user-agent'],
+                    ip:    oRequest.connection.remoteAddress
+                }
+            });
+        }
+
         addTag(tag: string, value: any) {
             if (!this.tags) {
                 this.tags = {};
