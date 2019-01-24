@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const crypto_1 = __importDefault(require("crypto"));
 const syslogh_1 = __importDefault(require("syslogh"));
 const util_1 = __importDefault(require("util"));
+const url_1 = __importDefault(require("url"));
 const Timer_1 = __importDefault(require("./Timer"));
 const TimeKeeper_1 = __importDefault(require("./TimeKeeper"));
 class Logger {
@@ -67,9 +68,26 @@ class Logger {
             this.addSyslog();
         }
         this.request_hash = crypto_1.default.createHash('sha1').update('' + TimeKeeper_1.default.getTime()).digest('hex').substring(0, 8);
-        this.thread_hash = oOptions.thread_hash ? oOptions.thread_hash : this.request_hash;
-        if (oOptions.parent_hash) {
-            this.parent_hash = oOptions.parent_hash;
+        this.thread_hash = this.request_hash;
+        if (oOptions.request) {
+            if (oOptions.request.headers && oOptions.request.headers['x-request-id']) {
+                this.thread_hash = oOptions.request.headers['x-request-id'];
+            }
+            const oUrl = url_1.default.parse(oOptions.request.url || '', true);
+            if (oUrl.query['--t']) {
+                this.thread_hash = oUrl.query['--t'];
+            }
+            if (oUrl.query['--p']) {
+                this.parent_hash = oUrl.query['--p'];
+            }
+        }
+        else {
+            if (oOptions.thread_hash) {
+                this.thread_hash = oOptions.thread_hash;
+            }
+            if (oOptions.parent_hash) {
+                this.parent_hash = oOptions.parent_hash;
+            }
         }
         this.metrics = new Timer_1.default();
         this.metrics.start('_REQUEST');
