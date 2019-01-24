@@ -2,11 +2,13 @@
 
     export type LoggerOptions = {
         service:        string,
+        purpose:        string,
         thread_hash?:   string,
         parent_hash?:   string,
 
         console?:       boolean,
         syslog?:        boolean,
+
         request?:       http.IncomingMessage
     }
 
@@ -80,7 +82,7 @@
                     this.parent_hash = <string> oUrl.query['--p'];
                 }
 
-
+                this.addRequestContext(oOptions.request);
             } else {
                 if (oOptions.thread_hash) {
                     this.thread_hash = oOptions.thread_hash;
@@ -95,6 +97,10 @@
             this.metrics.start('_REQUEST');
 
             this.start_timestamp = new Date().toISOString();
+
+            if (oOptions.purpose) {
+                this.setPurpose(oOptions.purpose);
+            }
         }
 
         addConsole() {
