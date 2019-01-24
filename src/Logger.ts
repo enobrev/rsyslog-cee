@@ -1,15 +1,20 @@
+    import http from "http";
+
     export type LoggerOptions = {
         service:        string,
         thread_hash?:   string,
         parent_hash?:   string,
 
         console?:       boolean,
-        syslog?:        boolean
+        syslog?:        boolean,
+        request?:       http.IncomingMessage
     };
 
     import crypto           from 'crypto';
     import Syslogh          from 'syslogh';
     import util             from 'util';
+    import url              from "url";
+
     import Timer            from './Timer';
     import TimeKeeper       from './TimeKeeper';
 
@@ -58,10 +63,32 @@
             }
 
             this.request_hash = crypto.createHash('sha1').update('' + TimeKeeper.getTime()).digest('hex').substring(0, 8);
-            this.thread_hash  = oOptions.thread_hash ? oOptions.thread_hash : this.request_hash;
+            this.thread_hash  = this.request_hash;
 
-            if (oOptions.parent_hash) {
-                this.parent_hash = oOptions.parent_hash;
+            if (oOptions.request) {
+                if (oOptions.request.headers && oOptions.request.headers['x-request-id']) {
+                    this.thread_hash = <string> oOptions.request.headers['x-request-id'];
+                }
+
+                const oUrl = url.parse(oOptions.request.url || '', true);
+
+                if (oUrl.query['--t']) {
+                    this.thread_hash = <string> oUrl.query['--t'];
+                }
+
+                if (oUrl.query['--p']) {
+                    this.parent_hash = <string> oUrl.query['--p'];
+                }
+
+
+            } else {
+                if (oOptions.thread_hash) {
+                    this.thread_hash = oOptions.thread_hash;
+                }
+
+                if (oOptions.parent_hash) {
+                    this.parent_hash = oOptions.parent_hash;
+                }
             }
 
             this.metrics = new Timer();
