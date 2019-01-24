@@ -1,6 +1,6 @@
     import http from "http";
 
-    export interface LoggerOptions {
+    export type LoggerOptions = {
         service:        string,
         thread_hash?:   string,
         parent_hash?:   string,

@@ -1,13 +1,13 @@
 /// <reference types="node" />
 import http from "http";
-export interface LoggerOptions {
+export declare type LoggerOptions = {
     service: string;
     thread_hash?: string;
     parent_hash?: string;
     console?: boolean;
     syslog?: boolean;
     request?: http.IncomingMessage;
-}
+};
 import TimeKeeper from './TimeKeeper';
 export default class Logger {
     readonly service: string;
