@@ -1,6 +1,6 @@
     import http from "http";
 
-    export type LoggerOptions = {
+    export interface LoggerOptions {
         service:        string,
         thread_hash?:   string,
         parent_hash?:   string,
@@ -8,7 +8,7 @@
         console?:       boolean,
         syslog?:        boolean,
         request?:       http.IncomingMessage
-    };
+    }
 
     import crypto           from 'crypto';
     import Syslogh          from 'syslogh';
