@@ -14,7 +14,7 @@
     "url": "https://github.com/enobrev/rsyslog-cee.git"
   },
   "dependencies": {
-    "syslogh": "^1.2.1"
+    "syslogh": "moll/node-syslogh#4/head"
   },
   "devDependencies": {
     "@types/node": "^10.12.18",
