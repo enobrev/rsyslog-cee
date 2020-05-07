@@ -26,12 +26,13 @@
     import TimeKeeper       from './TimeKeeper';
 
     export default class Logger {
-
         readonly service:         string;
         readonly request_hash:    string;
         readonly thread_hash:     string;
         readonly parent_hash?:    string;
         readonly start_timestamp: string;
+
+        private static services: string[] = [];
 
         private index:           number;
         private metrics:         Timer;
@@ -118,12 +119,16 @@
 
         addSyslog() {
             this.syslog = true;
-            Syslogh.openlog(this.service, Syslogh.PID, Syslogh.LOCAL7)
+            if (!Logger.services.includes(this.service)) {
+                Logger.services.push(this.service);
+                Syslogh.openlog(this.service, Syslogh.PID, Syslogh.LOCAL7);
+            }
         }
 
         removeSyslog() {
             this.syslog = false;
             Syslogh.closelog();
+            Logger.services.splice(Logger.services.indexOf(this.service), 1);
         }
 
         getTraceTags(): TraceTags {

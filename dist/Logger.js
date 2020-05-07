@@ -105,11 +105,15 @@ class Logger {
     }
     addSyslog() {
         this.syslog = true;
-        syslogh_1.default.openlog(this.service, syslogh_1.default.PID, syslogh_1.default.LOCAL7);
+        if (!Logger.services.includes(this.service)) {
+            Logger.services.push(this.service);
+            syslogh_1.default.openlog(this.service, syslogh_1.default.PID, syslogh_1.default.LOCAL7);
+        }
     }
     removeSyslog() {
         this.syslog = false;
         syslogh_1.default.closelog();
+        Logger.services.splice(Logger.services.indexOf(this.service), 1);
     }
     getTraceTags() {
         return {
@@ -296,3 +300,4 @@ class Logger {
     }
 }
 exports.default = Logger;
+Logger.services = [];

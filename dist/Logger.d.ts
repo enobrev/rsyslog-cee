@@ -20,6 +20,7 @@ export default class Logger {
     readonly thread_hash: string;
     readonly parent_hash?: string;
     readonly start_timestamp: string;
+    private static services;
     private index;
     private metrics;
     private is_error;
