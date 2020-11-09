@@ -5,8 +5,7 @@ export declare type LoggerOptions = {
     purpose?: string;
     thread_hash?: string;
     parent_hash?: string;
-    console?: boolean;
-    syslog?: boolean;
+    format?: boolean;
     request?: http.IncomingMessage;
 };
 export declare type TraceTags = {
@@ -20,22 +19,27 @@ export default class Logger {
     readonly thread_hash: string;
     readonly parent_hash?: string;
     readonly start_timestamp: string;
-    private static services;
     private index;
     private metrics;
     private is_error;
-    private console;
-    private syslog;
+    private format;
     private purpose?;
+    static EMERG: number;
+    static ALERT: number;
+    static CRIT: number;
+    static ERR: number;
+    static WARNING: number;
+    static NOTICE: number;
+    static INFO: number;
+    static DEBUG: number;
+    static SEVERITY_NAMES: {
+        [x: number]: string;
+    };
     readonly Globals: {
         [index: string]: any;
     };
     private tags?;
     constructor(oOptions: LoggerOptions);
-    addConsole(): void;
-    removeConsole(): void;
-    addSyslog(): void;
-    removeSyslog(): void;
     getTraceTags(): TraceTags;
     justAddContext(mContext: any): void;
     addRequestContext(oRequest: http.IncomingMessage): void;
@@ -43,7 +47,7 @@ export default class Logger {
     setProcessIsError(is_error: boolean): void;
     setPurpose(purpose: string): void;
     static _objectFromPath(oObject: any, sPath: string, mValue: any): void;
-    static _syslogFormatter(oMessage: any): string;
+    static _syslogFormatter(oMessage: any, bFormat: boolean): string;
     _indexedLogRewriter: (sMessage: string, oMeta?: any) => any;
     private log;
     /**

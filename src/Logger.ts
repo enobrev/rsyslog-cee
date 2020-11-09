@@ -1,13 +1,11 @@
     import http from "http";
 
     export type LoggerOptions = {
-        service:        string,
-        purpose?:       string,
-        thread_hash?:   string,
-        parent_hash?:   string,
-
-        console?:       boolean,
-        syslog?:        boolean,
+        service:        string
+        purpose?:       string
+        thread_hash?:   string
+        parent_hash?:   string
+        format?:        boolean
 
         request?:       http.IncomingMessage
     }
@@ -18,7 +16,6 @@
     }
 
     import crypto           from 'crypto';
-    import Syslogh          from 'syslogh';
     import util             from 'util';
     import url              from "url";
 
@@ -32,14 +29,31 @@
         readonly parent_hash?:    string;
         readonly start_timestamp: string;
 
-        private static services: string[] = [];
-
         private index:           number;
         private metrics:         Timer;
         private is_error:        boolean;
-        private console:         boolean;
-        private syslog:          boolean;
+        private format:          boolean = false;
         private purpose?:        string;
+
+        public static EMERG:   number = 0;  /* system is unusable */
+        public static ALERT:   number = 1;  /* action must be taken immediately */
+        public static CRIT:    number = 2;  /* critical conditions */
+        public static ERR:     number = 3;  /* error conditions */
+        public static WARNING: number = 4;  /* warning conditions */
+        public static NOTICE:  number = 5;  /* normal but significant condition */
+        public static INFO:    number = 6;  /* informational */
+        public static DEBUG:   number = 7;  /* debug-level messages */
+
+        public static SEVERITY_NAMES = {
+            [Logger.EMERG]:     'emerg',
+            [Logger.ALERT]:     'alert',
+            [Logger.CRIT]:      'crit',
+            [Logger.ERR]:       'err',
+            [Logger.WARNING]:   'warning',
+            [Logger.NOTICE]:    'notice',
+            [Logger.INFO]:      'info',
+            [Logger.DEBUG]:     'debug',
+        };
 
         readonly Globals:         {
             [index: string]: any
@@ -53,8 +67,6 @@
             this.Globals    = {};
             this.index      = 0;
             this.is_error   = false;
-            this.console    = false;
-            this.syslog     = false;
 
             if (!oOptions.service) {
                 throw new Error('Please set service name in options');
@@ -62,16 +74,12 @@
 
             this.service = oOptions.service;
 
-            if (oOptions.console) {
-                this.addConsole();
-            }
-
-            if (oOptions.syslog) {
-                this.addSyslog();
-            }
-
             this.request_hash = crypto.createHash('sha1').update('' + TimeKeeper.getTime()).digest('hex').substring(0, 8);
             this.thread_hash  = this.request_hash;
+
+            if (oOptions.format !== undefined) {
+                this.format = oOptions.format;
+            }
 
             if (oOptions.request) {
                 if (oOptions.request.headers && oOptions.request.headers['x-request-id']) {
@@ -107,28 +115,6 @@
             if (oOptions.purpose) {
                 this.setPurpose(oOptions.purpose);
             }
-        }
-
-        addConsole() {
-            this.console = true;
-        }
-
-        removeConsole() {
-            this.console = false;
-        }
-
-        addSyslog() {
-            this.syslog = true;
-            if (!Logger.services.includes(this.service)) {
-                Logger.services.push(this.service);
-                Syslogh.openlog(this.service, Syslogh.PID, Syslogh.LOCAL7);
-            }
-        }
-
-        removeSyslog() {
-            this.syslog = false;
-            Syslogh.closelog();
-            Logger.services.splice(Logger.services.indexOf(this.service), 1);
         }
 
         getTraceTags(): TraceTags {
@@ -184,12 +170,12 @@
             sPath.split('.').reduce((oValue: {[index: string]: any}, sKey: string, iIndex: number, aSplit: any) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
         };
 
-        static _syslogFormatter (oMessage: any): string {
+        static _syslogFormatter (oMessage: any, bFormat: boolean): string {
             return '@cee: ' + JSON.stringify(oMessage, (sKey, mValue) => {
                 return mValue instanceof Buffer
                     ? mValue.toString('base64')
                     : mValue;
-            });
+            }, bFormat ? '   ' : undefined);
         };
 
         _indexedLogRewriter = (sMessage: string, oMeta?: any) => {
@@ -246,24 +232,21 @@
         private log(iSeverity: number, sAction: string, oMeta?: any) {
             const oParsed  = Logger.JSONifyErrors(oMeta);
             const oMessage = this._indexedLogRewriter(sAction, oParsed);
-            const sMessage = Logger._syslogFormatter(oMessage);
 
-            if (this.syslog) {
-                Syslogh.syslog(iSeverity, sMessage);
-            }
+            oMessage['--s']  = iSeverity;
+            oMessage['--sn'] = Logger.SEVERITY_NAMES[iSeverity];
 
-            if (this.console) {
-                const sMessage = JSON.stringify(oMessage, null, '   ');
-                switch (iSeverity) {
-                    case Syslogh.DEBUG:   console.debug('DEBUG',   sMessage); break;
-                    case Syslogh.INFO:    console.info( 'INFO',    sMessage); break;
-                    case Syslogh.NOTICE:  console.log(  'NOTICE',  sMessage); break;
-                    case Syslogh.WARNING: console.warn( 'WARNING', sMessage); break;
-                    case Syslogh.ERR:     console.error('ERR',     sMessage); break;
-                    case Syslogh.CRIT:    console.error('CRIT',    sMessage); break;
-                    case Syslogh.ALERT:   console.error('ALERT',   sMessage); break;
-                    case Syslogh.EMERG:   console.error('EMERG',   sMessage); break;
-                }
+            const sMessage = Logger._syslogFormatter(oMessage, this.format);
+
+            switch (iSeverity) {
+                case Logger.DEBUG:   console.debug(sMessage); break;
+                case Logger.INFO:    console.info( sMessage); break;
+                case Logger.NOTICE:  console.log(  sMessage); break;
+                case Logger.WARNING: console.warn( sMessage); break;
+                case Logger.ERR:     console.error(sMessage); break;
+                case Logger.CRIT:    console.error(sMessage); break;
+                case Logger.ALERT:   console.error(sMessage); break;
+                case Logger.EMERG:   console.error(sMessage); break;
             }
         }
 
@@ -293,7 +276,7 @@
                 }
             };
 
-            this.log(Syslogh.INFO, [this.service, sOverrideName].join('.'), oSummary);
+            this.log(Logger.INFO, [this.service, sOverrideName].join('.'), oSummary);
 
             return oSummary;
         }
@@ -309,14 +292,16 @@
 
                 // https://stackoverflow.com/a/18391400/14651
                 const sMeta = JSON.stringify(oMeta, (sKey: string , mValue: any) => {
-                    if (util.types && util.types.isNativeError ? util.types.isNativeError(mValue) : util.isError(mValue)) {
+                    if (util.types && util.types.isNativeError(mValue)) {
                         bFoundErrors = true;
                         let oError: {[index: string]: any} = {};
 
-                        Object.getOwnPropertyNames(mValue).forEach(sKey => {
+                        Object.getOwnPropertyNames(mValue).forEach((sKey: string) => {
                             if (sKey === 'stack') {
+                                // @ts-ignore
                                 oError[sKey] = mValue[sKey].split('\n');
                             } else {
+                                // @ts-ignore
                                 oError[sKey] = mValue[sKey];
                             }
                         });
@@ -336,35 +321,35 @@
         }
 
         d(sAction: string, oMeta?: any) {
-            this.log(Syslogh.DEBUG, sAction, oMeta);
+            this.log(Logger.DEBUG, sAction, oMeta);
         }
 
         i(sAction: string, oMeta?: any) {
-            this.log(Syslogh.INFO, sAction, oMeta);
+            this.log(Logger.INFO, sAction, oMeta);
         }
 
         n(sAction: string, oMeta?: any) {
-            this.log(Syslogh.NOTICE, sAction, oMeta);
+            this.log(Logger.NOTICE, sAction, oMeta);
         }
 
         w(sAction: string, oMeta?: any) {
-            this.log(Syslogh.WARNING, sAction, oMeta);
+            this.log(Logger.WARNING, sAction, oMeta);
         }
 
         e(sAction: string, oMeta?: any) {
-            this.log(Syslogh.ERR, sAction, oMeta);
+            this.log(Logger.ERR, sAction, oMeta);
         }
 
         c(sAction: string, oMeta?: any) {
-            this.log(Syslogh.CRIT, sAction, oMeta);
+            this.log(Logger.CRIT, sAction, oMeta);
         }
 
         a(sAction: string, oMeta?: any) {
-            this.log(Syslogh.ALERT, sAction, oMeta);
+            this.log(Logger.ALERT, sAction, oMeta);
         }
 
         em(sAction: string, oMeta?: any) {
-            this.log(Syslogh.EMERG, sAction, oMeta);
+            this.log(Logger.EMERG, sAction, oMeta);
         }
 
         dt(oTime: TimeKeeper, sActionOverride?: string) {

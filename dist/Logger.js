@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const crypto_1 = __importDefault(require("crypto"));
-const syslogh_1 = __importDefault(require("syslogh"));
 const util_1 = __importDefault(require("util"));
 const url_1 = __importDefault(require("url"));
 const Timer_1 = __importDefault(require("./Timer"));
 const TimeKeeper_1 = __importDefault(require("./TimeKeeper"));
 class Logger {
     constructor(oOptions) {
+        this.format = false;
         this._indexedLogRewriter = (sMessage, oMeta) => {
             let oClone = oMeta ? Object.assign({}, oMeta) : {};
             let oOutput = {
@@ -55,20 +55,15 @@ class Logger {
         this.Globals = {};
         this.index = 0;
         this.is_error = false;
-        this.console = false;
-        this.syslog = false;
         if (!oOptions.service) {
             throw new Error('Please set service name in options');
         }
         this.service = oOptions.service;
-        if (oOptions.console) {
-            this.addConsole();
-        }
-        if (oOptions.syslog) {
-            this.addSyslog();
-        }
         this.request_hash = crypto_1.default.createHash('sha1').update('' + TimeKeeper_1.default.getTime()).digest('hex').substring(0, 8);
         this.thread_hash = this.request_hash;
+        if (oOptions.format !== undefined) {
+            this.format = oOptions.format;
+        }
         if (oOptions.request) {
             if (oOptions.request.headers && oOptions.request.headers['x-request-id']) {
                 this.thread_hash = oOptions.request.headers['x-request-id'];
@@ -96,24 +91,6 @@ class Logger {
         if (oOptions.purpose) {
             this.setPurpose(oOptions.purpose);
         }
-    }
-    addConsole() {
-        this.console = true;
-    }
-    removeConsole() {
-        this.console = false;
-    }
-    addSyslog() {
-        this.syslog = true;
-        if (!Logger.services.includes(this.service)) {
-            Logger.services.push(this.service);
-            syslogh_1.default.openlog(this.service, syslogh_1.default.PID, syslogh_1.default.LOCAL7);
-        }
-    }
-    removeSyslog() {
-        this.syslog = false;
-        syslogh_1.default.closelog();
-        Logger.services.splice(Logger.services.indexOf(this.service), 1);
     }
     getTraceTags() {
         return {
@@ -161,49 +138,45 @@ class Logger {
         sPath.split('.').reduce((oValue, sKey, iIndex, aSplit) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
     }
     ;
-    static _syslogFormatter(oMessage) {
+    static _syslogFormatter(oMessage, bFormat) {
         return '@cee: ' + JSON.stringify(oMessage, (sKey, mValue) => {
             return mValue instanceof Buffer
                 ? mValue.toString('base64')
                 : mValue;
-        });
+        }, bFormat ? '   ' : undefined);
     }
     ;
     log(iSeverity, sAction, oMeta) {
         const oParsed = Logger.JSONifyErrors(oMeta);
         const oMessage = this._indexedLogRewriter(sAction, oParsed);
-        const sMessage = Logger._syslogFormatter(oMessage);
-        if (this.syslog) {
-            syslogh_1.default.syslog(iSeverity, sMessage);
-        }
-        if (this.console) {
-            const sMessage = JSON.stringify(oMessage, null, '   ');
-            switch (iSeverity) {
-                case syslogh_1.default.DEBUG:
-                    console.debug('DEBUG', sMessage);
-                    break;
-                case syslogh_1.default.INFO:
-                    console.info('INFO', sMessage);
-                    break;
-                case syslogh_1.default.NOTICE:
-                    console.log('NOTICE', sMessage);
-                    break;
-                case syslogh_1.default.WARNING:
-                    console.warn('WARNING', sMessage);
-                    break;
-                case syslogh_1.default.ERR:
-                    console.error('ERR', sMessage);
-                    break;
-                case syslogh_1.default.CRIT:
-                    console.error('CRIT', sMessage);
-                    break;
-                case syslogh_1.default.ALERT:
-                    console.error('ALERT', sMessage);
-                    break;
-                case syslogh_1.default.EMERG:
-                    console.error('EMERG', sMessage);
-                    break;
-            }
+        oMessage['--s'] = iSeverity;
+        oMessage['--sn'] = Logger.SEVERITY_NAMES[iSeverity];
+        const sMessage = Logger._syslogFormatter(oMessage, this.format);
+        switch (iSeverity) {
+            case Logger.DEBUG:
+                console.debug(sMessage);
+                break;
+            case Logger.INFO:
+                console.info(sMessage);
+                break;
+            case Logger.NOTICE:
+                console.log(sMessage);
+                break;
+            case Logger.WARNING:
+                console.warn(sMessage);
+                break;
+            case Logger.ERR:
+                console.error(sMessage);
+                break;
+            case Logger.CRIT:
+                console.error(sMessage);
+                break;
+            case Logger.ALERT:
+                console.error(sMessage);
+                break;
+            case Logger.EMERG:
+                console.error(sMessage);
+                break;
         }
     }
     /**
@@ -231,7 +204,7 @@ class Logger {
                 context: this.Globals
             }
         };
-        this.log(syslogh_1.default.INFO, [this.service, sOverrideName].join('.'), oSummary);
+        this.log(Logger.INFO, [this.service, sOverrideName].join('.'), oSummary);
         return oSummary;
     }
     /**
@@ -244,14 +217,16 @@ class Logger {
             let bFoundErrors = false;
             // https://stackoverflow.com/a/18391400/14651
             const sMeta = JSON.stringify(oMeta, (sKey, mValue) => {
-                if (util_1.default.types && util_1.default.types.isNativeError ? util_1.default.types.isNativeError(mValue) : util_1.default.isError(mValue)) {
+                if (util_1.default.types && util_1.default.types.isNativeError(mValue)) {
                     bFoundErrors = true;
                     let oError = {};
-                    Object.getOwnPropertyNames(mValue).forEach(sKey => {
+                    Object.getOwnPropertyNames(mValue).forEach((sKey) => {
                         if (sKey === 'stack') {
+                            // @ts-ignore
                             oError[sKey] = mValue[sKey].split('\n');
                         }
                         else {
+                            // @ts-ignore
                             oError[sKey] = mValue[sKey];
                         }
                     });
@@ -266,28 +241,28 @@ class Logger {
         return oMeta;
     }
     d(sAction, oMeta) {
-        this.log(syslogh_1.default.DEBUG, sAction, oMeta);
+        this.log(Logger.DEBUG, sAction, oMeta);
     }
     i(sAction, oMeta) {
-        this.log(syslogh_1.default.INFO, sAction, oMeta);
+        this.log(Logger.INFO, sAction, oMeta);
     }
     n(sAction, oMeta) {
-        this.log(syslogh_1.default.NOTICE, sAction, oMeta);
+        this.log(Logger.NOTICE, sAction, oMeta);
     }
     w(sAction, oMeta) {
-        this.log(syslogh_1.default.WARNING, sAction, oMeta);
+        this.log(Logger.WARNING, sAction, oMeta);
     }
     e(sAction, oMeta) {
-        this.log(syslogh_1.default.ERR, sAction, oMeta);
+        this.log(Logger.ERR, sAction, oMeta);
     }
     c(sAction, oMeta) {
-        this.log(syslogh_1.default.CRIT, sAction, oMeta);
+        this.log(Logger.CRIT, sAction, oMeta);
     }
     a(sAction, oMeta) {
-        this.log(syslogh_1.default.ALERT, sAction, oMeta);
+        this.log(Logger.ALERT, sAction, oMeta);
     }
     em(sAction, oMeta) {
-        this.log(syslogh_1.default.EMERG, sAction, oMeta);
+        this.log(Logger.EMERG, sAction, oMeta);
     }
     dt(oTime, sActionOverride) {
         this.d(sActionOverride ? sActionOverride : oTime.label(), { '--ms': oTime.stop() });
@@ -300,4 +275,21 @@ class Logger {
     }
 }
 exports.default = Logger;
-Logger.services = [];
+Logger.EMERG = 0; /* system is unusable */
+Logger.ALERT = 1; /* action must be taken immediately */
+Logger.CRIT = 2; /* critical conditions */
+Logger.ERR = 3; /* error conditions */
+Logger.WARNING = 4; /* warning conditions */
+Logger.NOTICE = 5; /* normal but significant condition */
+Logger.INFO = 6; /* informational */
+Logger.DEBUG = 7; /* debug-level messages */
+Logger.SEVERITY_NAMES = {
+    [Logger.EMERG]: 'emerg',
+    [Logger.ALERT]: 'alert',
+    [Logger.CRIT]: 'crit',
+    [Logger.ERR]: 'err',
+    [Logger.WARNING]: 'warning',
+    [Logger.NOTICE]: 'notice',
+    [Logger.INFO]: 'info',
+    [Logger.DEBUG]: 'debug',
+};

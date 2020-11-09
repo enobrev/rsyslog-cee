@@ -1,11 +1,10 @@
 const Logger = require('../dist/index').Logger;
 
-const oLogger = new Logger({service: 'Test', console: true, syslog: true});
+const oLogger = new Logger({service: 'Test', format: false});
 const oTimer = oLogger.startTimer('Test');
 
 setTimeout(function() {
     oLogger.dt(oTimer);
-    oLogger.removeSyslog();
 }, 1000);
 
 oLogger.d('Debug', {test: 'Debugging'});
