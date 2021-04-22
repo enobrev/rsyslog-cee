@@ -6,6 +6,7 @@ export declare type LoggerOptions = {
     thread_hash?: string;
     parent_hash?: string;
     format?: boolean;
+    cee?: boolean;
     request?: http.IncomingMessage;
 };
 export declare type TraceTags = {
@@ -23,6 +24,7 @@ export default class Logger {
     private metrics;
     private is_error;
     private format;
+    private cee;
     private purpose?;
     static EMERG: number;
     static ALERT: number;
@@ -46,9 +48,9 @@ export default class Logger {
     addTag(tag: string, value: any): void;
     setProcessIsError(is_error: boolean): void;
     setPurpose(purpose: string): void;
-    static _objectFromPath(oObject: any, sPath: string, mValue: any): void;
-    static _syslogFormatter(oMessage: any, bFormat: boolean): string;
-    _indexedLogRewriter: (sMessage: string, oMeta?: any) => any;
+    private static _objectFromPath;
+    private _syslogFormatter;
+    private _indexedLogRewriter;
     private log;
     /**
      *
@@ -81,7 +83,7 @@ export default class Logger {
      * @param {object} oMeta
      * @return {string}
      */
-    static JSONifyErrors(oMeta: object): any;
+    private static JSONifyErrors;
     d(sAction: string, oMeta?: any): void;
     i(sAction: string, oMeta?: any): void;
     n(sAction: string, oMeta?: any): void;

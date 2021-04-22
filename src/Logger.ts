@@ -6,6 +6,7 @@
         thread_hash?:   string
         parent_hash?:   string
         format?:        boolean
+        cee?:           boolean
 
         request?:       http.IncomingMessage
     }
@@ -33,6 +34,7 @@
         private metrics:         Timer;
         private is_error:        boolean;
         private format:          boolean = false;
+        private cee:             boolean = false;
         private purpose?:        string;
 
         public static EMERG:   number = 0;  /* system is unusable */
@@ -81,6 +83,8 @@
                 this.format = oOptions.format;
             }
 
+            this.cee = oOptions.cee !== undefined ? oOptions.cee : false;
+
             if (oOptions.request) {
                 if (oOptions.request.headers && oOptions.request.headers['x-request-id']) {
                     this.thread_hash = <string> oOptions.request.headers['x-request-id'];
@@ -117,18 +121,18 @@
             }
         }
 
-        getTraceTags(): TraceTags {
+        public getTraceTags(): TraceTags {
             return {
                 '--t': this.thread_hash,
                 '--p': this.request_hash
             };
         }
 
-        justAddContext(mContext: any) {
+        public justAddContext(mContext: any) {
             this._indexedLogRewriter('', mContext);
         }
 
-        addRequestContext(oRequest: http.IncomingMessage) {
+        public addRequestContext(oRequest: http.IncomingMessage) {
             this._indexedLogRewriter('', {
                 '#request': {
                     headers:    JSON.stringify(oRequest.headers),
@@ -150,7 +154,7 @@
             });
         }
 
-        addTag(tag: string, value: any) {
+        public addTag(tag: string, value: any) {
             if (!this.tags) {
                 this.tags = {};
             }
@@ -158,27 +162,33 @@
             this.tags[tag] = value;
         }
 
-        setProcessIsError(is_error: boolean) {
+        public setProcessIsError(is_error: boolean) {
             this.is_error = is_error;
         }
 
-        setPurpose(purpose: string) {
+        public setPurpose(purpose: string) {
             this.purpose = purpose;
         }
 
-        static _objectFromPath (oObject: any, sPath: string, mValue: any) {
+        private static _objectFromPath (oObject: any, sPath: string, mValue: any) {
             sPath.split('.').reduce((oValue: {[index: string]: any}, sKey: string, iIndex: number, aSplit: any) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
         };
 
-        static _syslogFormatter (oMessage: any, bFormat: boolean): string {
-            return '@cee: ' + JSON.stringify(oMessage, (sKey, mValue) => {
+        private _syslogFormatter (oMessage: any, bFormat: boolean): string {
+            let sMessage = JSON.stringify(oMessage, (sKey, mValue) => {
                 return mValue instanceof Buffer
                     ? mValue.toString('base64')
                     : mValue;
             }, bFormat ? '   ' : undefined);
+
+            if (this.cee) {
+                sMessage = `@cee: ${sMessage}`;
+            }
+
+            return sMessage;
         };
 
-        _indexedLogRewriter = (sMessage: string, oMeta?: any) => {
+        private _indexedLogRewriter = (sMessage: string, oMeta?: any) => {
             let oClone = oMeta ? Object.assign({}, oMeta) : {};
 
             let oOutput: any = {
@@ -236,7 +246,7 @@
             oMessage['--s']  = iSeverity;
             oMessage['--sn'] = Logger.SEVERITY_NAMES[iSeverity];
 
-            const sMessage = Logger._syslogFormatter(oMessage, this.format);
+            const sMessage = this._syslogFormatter(oMessage, this.format);
 
             switch (iSeverity) {
                 case Logger.DEBUG:   console.debug(sMessage); break;
@@ -255,7 +265,7 @@
          * @param sOverrideName
          * @returns {{"--ms": *, "--i": number, "--summary": boolean, "--span": {_format: string, version: number, start_timestamp: string, end_timestamp: string, service: string, indicator: boolean, metrics: string, error: boolean, name: string, tags: {}, context: {}}}}
          */
-        summary(sOverrideName: string = 'Summary') {
+        public summary(sOverrideName: string = 'Summary') {
             this.index++;
             const iTimer = this.metrics.stop('_REQUEST');
             const oSummary = {
@@ -286,7 +296,7 @@
          * @param {object} oMeta
          * @return {string}
          */
-        static JSONifyErrors(oMeta: object) {
+        private static JSONifyErrors(oMeta: object) {
             if (oMeta) {
                 let bFoundErrors = false;
 
@@ -320,47 +330,47 @@
             return oMeta;
         }
 
-        d(sAction: string, oMeta?: any) {
+        public d(sAction: string, oMeta?: any) {
             this.log(Logger.DEBUG, sAction, oMeta);
         }
 
-        i(sAction: string, oMeta?: any) {
+        public i(sAction: string, oMeta?: any) {
             this.log(Logger.INFO, sAction, oMeta);
         }
 
-        n(sAction: string, oMeta?: any) {
+        public n(sAction: string, oMeta?: any) {
             this.log(Logger.NOTICE, sAction, oMeta);
         }
 
-        w(sAction: string, oMeta?: any) {
+        public w(sAction: string, oMeta?: any) {
             this.log(Logger.WARNING, sAction, oMeta);
         }
 
-        e(sAction: string, oMeta?: any) {
+        public e(sAction: string, oMeta?: any) {
             this.log(Logger.ERR, sAction, oMeta);
         }
 
-        c(sAction: string, oMeta?: any) {
+        public c(sAction: string, oMeta?: any) {
             this.log(Logger.CRIT, sAction, oMeta);
         }
 
-        a(sAction: string, oMeta?: any) {
+        public a(sAction: string, oMeta?: any) {
             this.log(Logger.ALERT, sAction, oMeta);
         }
 
-        em(sAction: string, oMeta?: any) {
+        public em(sAction: string, oMeta?: any) {
             this.log(Logger.EMERG, sAction, oMeta);
         }
 
-        dt(oTime: TimeKeeper, sActionOverride?: string) {
+        public dt(oTime: TimeKeeper, sActionOverride?: string) {
             this.d(sActionOverride ? sActionOverride : oTime.label(), {'--ms': oTime.stop()});
         }
-        
-        startTimer(sLabel: string): TimeKeeper {
+
+        public startTimer(sLabel: string): TimeKeeper {
             return this.metrics.start(sLabel);
         }
 
-        stopTimer(sLabel: string): number {
+        public stopTimer(sLabel: string): number {
             return this.metrics.stop(sLabel);
         }
     }

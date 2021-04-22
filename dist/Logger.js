@@ -11,6 +11,7 @@ const TimeKeeper_1 = __importDefault(require("./TimeKeeper"));
 class Logger {
     constructor(oOptions) {
         this.format = false;
+        this.cee = false;
         this._indexedLogRewriter = (sMessage, oMeta) => {
             let oClone = oMeta ? Object.assign({}, oMeta) : {};
             let oOutput = {
@@ -64,6 +65,7 @@ class Logger {
         if (oOptions.format !== undefined) {
             this.format = oOptions.format;
         }
+        this.cee = oOptions.cee !== undefined ? oOptions.cee : false;
         if (oOptions.request) {
             if (oOptions.request.headers && oOptions.request.headers['x-request-id']) {
                 this.thread_hash = oOptions.request.headers['x-request-id'];
@@ -138,12 +140,16 @@ class Logger {
         sPath.split('.').reduce((oValue, sKey, iIndex, aSplit) => oValue[sKey] = iIndex === aSplit.length - 1 ? mValue : {}, oObject);
     }
     ;
-    static _syslogFormatter(oMessage, bFormat) {
-        return '@cee: ' + JSON.stringify(oMessage, (sKey, mValue) => {
+    _syslogFormatter(oMessage, bFormat) {
+        let sMessage = JSON.stringify(oMessage, (sKey, mValue) => {
             return mValue instanceof Buffer
                 ? mValue.toString('base64')
                 : mValue;
         }, bFormat ? '   ' : undefined);
+        if (this.cee) {
+            sMessage = `@cee: ${sMessage}`;
+        }
+        return sMessage;
     }
     ;
     log(iSeverity, sAction, oMeta) {
@@ -151,7 +157,7 @@ class Logger {
         const oMessage = this._indexedLogRewriter(sAction, oParsed);
         oMessage['--s'] = iSeverity;
         oMessage['--sn'] = Logger.SEVERITY_NAMES[iSeverity];
-        const sMessage = Logger._syslogFormatter(oMessage, this.format);
+        const sMessage = this._syslogFormatter(oMessage, this.format);
         switch (iSeverity) {
             case Logger.DEBUG:
                 console.debug(sMessage);
